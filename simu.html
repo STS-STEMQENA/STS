@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        
+        body {
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        body.light-mode {
+            background: #f8f9fa;
+            color: #333333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .title {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00a2ff, #0088ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .light-mode .title {
+            background: linear-gradient(135deg, #0056b3, #003d7a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .subtitle {
+            color: #aaaaaa;
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .light-mode .subtitle {
+            color: #666666;
+        }
+        
+        /* Theme Toggle */
+        .theme-toggle {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+        
+        .light-mode .theme-toggle {
+            background: rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 0, 0, 0.2);
+            color: #333333;
+        }
+        
+        .theme-toggle:hover {
+            transform: rotate(30deg) scale(1.1);
+        }
+        
+        /* Simulation Layout */
+        .simulation-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        /* Condition Panel */
+        .condition-panel {
+            background: rgba(20, 20, 20, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            min-height: 600px;
+            transition: all 0.3s ease;
+        }
+        
+        .light-mode .condition-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #e0e0e0;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .condition-panel.free {
+            border-color: rgba(0, 255, 136, 0.5);
+        }
+        
+        .light-mode .condition-panel.free {
+            border-color: rgba(0, 180, 90, 0.5);
+        }
+        
+        .condition-panel.severe {
+            border-color: rgba(255, 71, 87, 0.5);
+        }
+        
+        .light-mode .condition-panel.severe {
+            border-color: rgba(220, 50, 65, 0.5);
+        }
+        
+        /* Panel Header */
+        .panel-header {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .light-mode .panel-header {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .condition-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        
+        .condition-title.free {
+            color: #00ff88;
+        }
+        
+        .light-mode .condition-title.free {
+            color: #00a854;
+        }
+        
+        .condition-title.severe {
+            color: #ff4757;
+        }
+        
+        .light-mode .condition-title.severe {
+            color: #d6323c;
+        }
+        
+        .condition-description {
+            color: #aaaaaa;
+            margin-top: 8px;
+            font-size: 0.95rem;
+        }
+        
+        .light-mode .condition-description {
+            color: #666666;
+        }
+        
+        /* Video Frame */
+        .video-frame {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            position: relative;
+            min-height: 300px;
+            transition: all 0.3s ease;
+        }
+        
+        .light-mode .video-frame {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Display Mode */
+        .display-mode {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: rgba(0, 0, 0, 0.7);
+            transition: all 0.3s ease;
+        }
+        
+        .light-mode .display-mode {
+            background: rgba(0, 0, 0, 0.03);
+        }
+        
+        .video-header {
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .light-mode .video-header {
+            background: rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .video-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .video-title.free {
+            color: #00ff88;
+        }
+        
+        .light-mode .video-title.free {
+            color: #00a854;
+        }
+        
+        .video-title.severe {
+            color: #ff4757;
+        }
+        
+        .light-mode .video-title.severe {
+            color: #d6323c;
+        }
+        
+        .video-player-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .condition-video {
+            width: 100%;
+            height: 100%;
+            max-height: 100%;
+            border-radius: 10px;
+            background: #000;
+            object-fit: contain;
+        }
+        
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+            border-radius: 10px;
+        }
+        
+        .light-mode .video-overlay {
+            background: rgba(0, 0, 0, 0.5);
+        }
+        
+        .video-player-container:hover .video-overlay {
+            opacity: 1;
+        }
+        
+        .overlay-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .overlay-btn {
+            background: rgba(255, 255, 255, 0.9);
+            color: #000000;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .light-mode .overlay-btn {
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+        }
+        
+        .overlay-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+        
+        .light-mode .overlay-btn:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+        
+        .video-info {
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .light-mode .video-info {
+            background: rgba(0, 0, 0, 0.05);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .video-name {
+            font-weight: bold;
+            color: #ffffff;
+            font-size: 0.9rem;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .light-mode .video-name {
+            color: #333333;
+        }
+        
+        .video-meta {
+            color: #aaaaaa;
+            font-size: 0.8rem;
+        }
+        
+        .light-mode .video-meta {
+            color: #666666;
+        }
+        
+        /* Speed Controls */
+        .speed-controls {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            display: block;
+        }
+        
+        .light-mode .speed-controls {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        
+        .speed-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            color: #ffffff;
+            font-size: 0.9rem;
+        }
+        
+        .light-mode .speed-header {
+            color: #333333;
+        }
+        
+        .speed-header.free {
+            color: #00ff88;
+        }
+        
+        .light-mode .speed-header.free {
+            color: #00a854;
+        }
+        
+        .speed-header.severe {
+            color: #ff4757;
+        }
+        
+        .light-mode .speed-header.severe {
+            color: #d6323c;
+        }
+        
+        .speed-slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .speed-slider input {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        .speed-slider.free input {
+            background: rgba(0, 255, 136, 0.2);
+        }
+        
+        .speed-slider.severe input {
+            background: rgba(255, 71, 87, 0.2);
+        }
+        
+        .speed-slider input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .speed-slider.free input::-webkit-slider-thumb {
+            background: #00ff88;
+            border: 2px solid #000000;
+        }
+        
+        .light-mode .speed-slider.free input::-webkit-slider-thumb {
+            background: #00a854;
+            border: 2px solid #ffffff;
+        }
+        
+        .speed-slider.severe input::-webkit-slider-thumb {
+            background: #ff4757;
+            border: 2px solid #000000;
+        }
+        
+        .light-mode .speed-slider.severe input::-webkit-slider-thumb {
+            background: #d6323c;
+            border: 2px solid #ffffff;
+        }
+        
+        .speed-presets {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .speed-preset-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+            flex: 1;
+            min-width: 60px;
+        }
+        
+        .light-mode .speed-preset-btn {
+            background: rgba(0, 0, 0, 0.05);
+            color: #333333;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .speed-preset-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .speed-preset-btn.free:hover {
+            background: rgba(0, 255, 136, 0.2);
+        }
+        
+        .speed-preset-btn.severe:hover {
+            background: rgba(255, 71, 87, 0.2);
+        }
+        
+        .speed-preset-btn.active {
+            color: white;
+            font-weight: bold;
+        }
+        
+        .speed-preset-btn.free.active {
+            background: #00ff88;
+            color: #000000;
+        }
+        
+        .light-mode .speed-preset-btn.free.active {
+            background: #00a854;
+            color: #ffffff;
+        }
+        
+        .speed-preset-btn.severe.active {
+            background: #ff4757;
+            color: #000000;
+        }
+        
+        .light-mode .speed-preset-btn.severe.active {
+            background: #d6323c;
+            color: #ffffff;
+        }
+        
+        .current-speed {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            padding: 8px;
+            border-radius: 8px;
+        }
+        
+        .current-speed.free {
+            color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        .light-mode .current-speed.free {
+            color: #00a854;
+            background: rgba(0, 180, 90, 0.1);
+        }
+        
+        .current-speed.severe {
+            color: #ff4757;
+            background: rgba(255, 71, 87, 0.1);
+        }
+        
+        .light-mode .current-speed.severe {
+            color: #d6323c;
+            background: rgba(220, 50, 65, 0.1);
+        }
+        
+        /* Control Buttons */
+        .control-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            display: flex;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            flex: 1;
+        }
+        
+        .light-mode .control-btn {
+            background: rgba(0, 0, 0, 0.05);
+            color: #333333;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .light-mode .control-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        .control-btn.free {
+            border-color: rgba(0, 255, 136, 0.5);
+        }
+        
+        .light-mode .control-btn.free {
+            border-color: rgba(0, 180, 90, 0.5);
+        }
+        
+        .control-btn.severe {
+            border-color: rgba(255, 71, 87, 0.5);
+        }
+        
+        .light-mode .control-btn.severe {
+            border-color: rgba(220, 50, 65, 0.5);
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(0, 162, 255, 0.3);
+            color: #aaaaaa;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .light-mode footer {
+            border-top: 1px solid rgba(0, 86, 179, 0.3);
+            color: #666666;
+        }
+        
+        @media (max-width: 1024px) {
+            .simulation-layout {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .condition-panel {
+                min-height: 500px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .title {
+                font-size: 2.2rem;
+            }
+            
+            .theme-toggle {
+                position: relative;
+                right: auto;
+                top: auto;
+                margin: 15px auto;
+                display: block;
+            }
+            
+            .condition-panel {
+                padding: 20px;
+            }
+            
+            .video-frame {
+                min-height: 250px;
+            }
+            
+            .video-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            
+            .control-buttons {
+                justify-content: center;
+            }
+            
+            .control-btn {
+                flex: none;
+                min-width: 120px;
+            }
+            
+            .speed-presets {
+                justify-content: center;
+            }
+            
+            .speed-preset-btn {
+                min-width: 50px;
+                font-size: 0.75rem;
+                padding: 5px 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .title {
+                font-size: 1.8rem;
+            }
+            
+            .condition-title {
+                font-size: 1.4rem;
+            }
+            
+            .video-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            
+            .overlay-controls {
+                gap: 8px;
+            }
+            
+            .overlay-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">Traffic Simulation</h1>
+            <p class="subtitle">
+                Compare free flow and severe congestion conditions side by side. 
+                Each condition has its own independent video and speed controls.
+            </p>
+            
+            <!-- Theme Toggle -->
+            <button class="theme-toggle" id="themeToggle">
+                ☀️
+            </button>
+        </header>
+        
+        <!-- Simulation Layout - Two Panels Side by Side -->
+        <div class="simulation-layout">
+            <!-- Free Traffic Panel -->
+            <div class="condition-panel free" id="freePanel">
+                <div class="panel-header">
+                    <h2 class="condition-title free">Free Traffic Condition</h2>
+                    <p class="condition-description">Smooth traffic flow with optimal conditions</p>
+                </div>
+                
+                <!-- Video Frame -->
+                <div class="video-frame">
+                    <!-- Display Mode -->
+                    <div class="display-mode active" id="freeDisplayMode">
+                        <div class="video-header">
+                            <div class="video-title free">Free Traffic Simulation</div>
+                        </div>
+                        
+                        <div class="video-player-container">
+                            <video class="condition-video" id="freeVideo" controls>
+                                <source src="1.mp4" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                            <div class="video-overlay">
+                                <div class="overlay-controls">
+                                    <button class="overlay-btn" data-condition="free" data-action="play">▶</button>
+                                    <button class="overlay-btn" data-condition="free" data-action="pause">⏸</button>
+                                    <button class="overlay-btn" data-condition="free" data-action="fullscreen">⛶</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="video-info" id="freeVideoInfo">
+                            <div class="video-name" id="freeFileName">Free Traffic Simulation (1.mp4)</div>
+                            <div class="video-meta">
+                                <span id="freeFileStatus">Video loaded</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Speed Controls for Free Traffic -->
+                <div class="speed-controls" id="freeSpeedControls">
+                    <div class="speed-header free">
+                        <span>⚡</span>
+                        <span>Playback Speed</span>
+                    </div>
+                    
+                    <div class="speed-slider free">
+                        <input type="range" class="speed-slider-input" data-condition="free" min="0.25" max="2" step="0.25" value="1">
+                    </div>
+                    
+                    <div class="speed-presets">
+                        <button class="speed-preset-btn free" data-condition="free" data-speed="0.25">0.25x</button>
+                        <button class="speed-preset-btn free" data-condition="free" data-speed="0.5">0.5x</button>
+                        <button class="speed-preset-btn free active" data-condition="free" data-speed="1">1x</button>
+                        <button class="speed-preset-btn free" data-condition="free" data-speed="1.5">1.5x</button>
+                        <button class="speed-preset-btn free" data-condition="free" data-speed="2">2x</button>
+                    </div>
+                    
+                    <div class="current-speed free" id="freeCurrentSpeed">
+                        Current Speed: <span>1.00x</span>
+                    </div>
+                </div>
+                
+                <!-- Control Buttons -->
+                <div class="control-buttons" id="freeControlButtons">
+                    <button class="control-btn free" data-condition="free" data-action="play">
+                        Play
+                    </button>
+                    <button class="control-btn free" data-condition="free" data-action="pause">
+                        Pause
+                    </button>
+                    <button class="control-btn free" data-condition="free" data-action="fullscreen">
+                        Fullscreen
+                    </button>
+                    <button class="control-btn free" data-condition="free" data-action="reset">
+                        Reset
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Severe Traffic Panel -->
+            <div class="condition-panel severe" id="severePanel">
+                <div class="panel-header">
+                    <h2 class="condition-title severe">Severe Traffic Condition</h2>
+                    <p class="condition-description">Heavy congestion with traffic delays</p>
+                </div>
+                
+                <!-- Video Frame -->
+                <div class="video-frame">
+                    <!-- Display Mode -->
+                    <div class="display-mode active" id="severeDisplayMode">
+                        <div class="video-header">
+                            <div class="video-title severe">Severe Traffic Simulation</div>
+                        </div>
+                        
+                        <div class="video-player-container">
+                            <video class="condition-video" id="severeVideo" controls>
+                                <source src="2.mp4" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                            <div class="video-overlay">
+                                <div class="overlay-controls">
+                                    <button class="overlay-btn" data-condition="severe" data-action="play">▶</button>
+                                    <button class="overlay-btn" data-condition="severe" data-action="pause">⏸</button>
+                                    <button class="overlay-btn" data-condition="severe" data-action="fullscreen">⛶</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="video-info" id="severeVideoInfo">
+                            <div class="video-name" id="severeFileName">Severe Traffic Simulation (2.mp4)</div>
+                            <div class="video-meta">
+                                <span id="severeFileStatus">Video loaded</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Speed Controls for Severe Traffic -->
+                <div class="speed-controls" id="severeSpeedControls">
+                    <div class="speed-header severe">
+                        <span>⚡</span>
+                        <span>Playback Speed</span>
+                    </div>
+                    
+                    <div class="speed-slider severe">
+                        <input type="range" class="speed-slider-input" data-condition="severe" min="0.25" max="2" step="0.25" value="1">
+                    </div>
+                    
+                    <div class="speed-presets">
+                        <button class="speed-preset-btn severe" data-condition="severe" data-speed="0.25">0.25x</button>
+                        <button class="speed-preset-btn severe" data-condition="severe" data-speed="0.5">0.5x</button>
+                        <button class="speed-preset-btn severe active" data-condition="severe" data-speed="1">1x</button>
+                        <button class="speed-preset-btn severe" data-condition="severe" data-speed="1.5">1.5x</button>
+                        <button class="speed-preset-btn severe" data-condition="severe" data-speed="2">2x</button>
+                    </div>
+                    
+                    <div class="current-speed severe" id="severeCurrentSpeed">
+                        Current Speed: <span>1.00x</span>
+                    </div>
+                </div>
+                
+                <!-- Control Buttons -->
+                <div class="control-buttons" id="severeControlButtons">
+                    <button class="control-btn severe" data-condition="severe" data-action="play">
+                        Play
+                    </button>
+                    <button class="control-btn severe" data-condition="severe" data-action="pause">
+                        Pause
+                    </button>
+                    <button class="control-btn severe" data-condition="severe" data-action="fullscreen">
+                        Fullscreen
+                    </button>
+                    <button class="control-btn severe" data-condition="severe" data-action="reset">
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer>
+            <p>Smart Traffic System Simulation | © 2025 STS Project Team</p>
+            <p>Compare different traffic conditions side by side</p>
+        </footer>
+    </div>
+
+    <script>
+        // Video data storage
+        const videoData = {
+            free: {
+                videoElement: document.getElementById('freeVideo'),
+                speedControls: document.getElementById('freeSpeedControls'),
+                speedSlider: document.querySelector('.speed-slider-input[data-condition="free"]'),
+                speedDisplay: document.querySelector('#freeCurrentSpeed span'),
+                speedPresets: document.querySelectorAll('.speed-preset-btn[data-condition="free"]'),
+                fileName: document.getElementById('freeFileName'),
+                currentSpeed: 1
+            },
+            severe: {
+                videoElement: document.getElementById('severeVideo'),
+                speedControls: document.getElementById('severeSpeedControls'),
+                speedSlider: document.querySelector('.speed-slider-input[data-condition="severe"]'),
+                speedDisplay: document.querySelector('#severeCurrentSpeed span'),
+                speedPresets: document.querySelectorAll('.speed-preset-btn[data-condition="severe"]'),
+                fileName: document.getElementById('severeFileName'),
+                currentSpeed: 1
+            }
+        };
+        
+        // Theme toggle variable
+        let isDarkMode = true;
+        const themeToggle = document.getElementById('themeToggle');
+        
+        // Toggle theme function
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            if (isDarkMode) {
+                document.body.classList.remove('light-mode');
+                themeToggle.innerHTML = '☀️';
+                themeToggle.title = 'Switch to light mode';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.add('light-mode');
+                themeToggle.innerHTML = '🌙';
+                themeToggle.title = 'Switch to dark mode';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+        
+        // Update speed display and apply to video
+        function updateSpeed(condition) {
+            const data = videoData[condition];
+            const speed = parseFloat(data.speedSlider.value);
+            data.currentSpeed = speed;
+            
+            // Update display
+            data.speedDisplay.textContent = speed.toFixed(2) + 'x';
+            
+            // Update active preset button
+            data.speedPresets.forEach(btn => {
+                btn.classList.remove('active');
+                if (parseFloat(btn.dataset.speed) === speed) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Apply speed to video
+            data.videoElement.playbackRate = speed;
+        }
+        
+        // Reset video to beginning
+        function resetVideo(condition) {
+            const data = videoData[condition];
+            data.videoElement.currentTime = 0;
+            data.videoElement.pause();
+            
+            // Reset speed to normal
+            data.speedSlider.value = 1;
+            updateSpeed(condition);
+        }
+        
+        // Handle video actions
+        function handleVideoAction(condition, action) {
+            const data = videoData[condition];
+            
+            switch(action) {
+                case 'play':
+                    data.videoElement.play();
+                    break;
+                case 'pause':
+                    data.videoElement.pause();
+                    break;
+                case 'fullscreen':
+                    if (data.videoElement.requestFullscreen) {
+                        data.videoElement.requestFullscreen();
+                    } else if (data.videoElement.webkitRequestFullscreen) {
+                        data.videoElement.webkitRequestFullscreen();
+                    }
+                    break;
+                case 'reset':
+                    resetVideo(condition);
+                    break;
+            }
+        }
+        
+        // Initialize event listeners
+        function init() {
+            // Theme toggle event
+            themeToggle.addEventListener('click', toggleTheme);
+            
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                isDarkMode = false;
+                document.body.classList.add('light-mode');
+                themeToggle.innerHTML = '🌙';
+                themeToggle.title = 'Switch to dark mode';
+            } else {
+                themeToggle.title = 'Switch to light mode';
+                localStorage.setItem('theme', 'dark');
+            }
+            
+            // Control button events
+            document.querySelectorAll('.control-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const condition = e.target.dataset.condition;
+                    const action = e.target.dataset.action;
+                    handleVideoAction(condition, action);
+                });
+            });
+            
+            // Overlay button events
+            document.querySelectorAll('.overlay-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const condition = e.target.dataset.condition;
+                    const action = e.target.dataset.action;
+                    handleVideoAction(condition, action);
+                });
+            });
+            
+            // Speed slider events
+            document.querySelectorAll('.speed-slider-input').forEach(slider => {
+                slider.addEventListener('input', (e) => {
+                    const condition = e.target.dataset.condition;
+                    updateSpeed(condition);
+                });
+            });
+            
+            // Speed preset button events
+            document.querySelectorAll('.speed-preset-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const condition = e.target.dataset.condition;
+                    const speed = parseFloat(e.target.dataset.speed);
+                    const data = videoData[condition];
+                    
+                    // Update slider value
+                    data.speedSlider.value = speed;
+                    
+                    // Update speed display and apply to video
+                    updateSpeed(condition);
+                });
+            });
+            
+            // Initialize speed displays
+            updateSpeed('free');
+            updateSpeed('severe');
+            
+            // Initialize videos with normal speed
+            videoData.free.videoElement.playbackRate = 1;
+            videoData.severe.videoElement.playbackRate = 1;
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

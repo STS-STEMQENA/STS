@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Traffic System Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        body {
+            background: #0a0a0a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+        
+        body.light-mode {
+            background: #f5f7fa;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 15px 10px;
+            position: relative;
+        }
+        
+        .title {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: #00bcd4; /* Light teal/cyan from image */
+        }
+        
+        .light-mode .title {
+            color: #007c91; /* Darker teal for light mode */
+        }
+        
+        .subtitle {
+            color: #aaa;
+            font-size: 1rem;
+            line-height: 1.4;
+        }
+        
+        .light-mode .subtitle {
+            color: #666;
+        }
+        
+        /* Theme Toggle */
+        .theme-toggle {
+            position: absolute;
+            right: 10px;
+            top: 15px;
+            background: #333;
+            border: none;
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+        }
+        
+        .light-mode .theme-toggle {
+            background: #00bcd4;
+            color: white;
+        }
+        
+        .theme-toggle:hover {
+            transform: rotate(30deg);
+        }
+        
+        /* Chat Container */
+        .chat-container {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #333;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            height: calc(100vh - 200px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .light-mode .chat-container {
+            background: white;
+            border: 1px solid #e1e5eb;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        /* Messages Area */
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background: #121212;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #333;
+            scroll-behavior: smooth;
+        }
+        
+        .light-mode .messages-area {
+            background: #f8f9fa;
+            border: 1px solid #e1e5eb;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            max-width: 85%;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message.user {
+            background: #1a2325;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+            border-right: 3px solid #00bcd4;
+        }
+        
+        .light-mode .message.user {
+            background: #e0f7fa;
+            border-right: 3px solid #00bcd4;
+        }
+        
+        .message.assistant {
+            background: #1a2325;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+            border-left: 4px solid #00bcd4;
+        }
+        
+        .light-mode .message.assistant {
+            background: #e0f7fa;
+            border-left: 4px solid #00bcd4;
+        }
+        
+        .message-header {
+            font-weight: bold;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            color: #00bcd4;
+        }
+        
+        .light-mode .message-header {
+            color: #007c91;
+        }
+        
+        .message-content {
+            line-height: 1.5;
+            font-size: 0.95rem;
+            color: #ccc;
+        }
+        
+        .light-mode .message-content {
+            color: #333;
+        }
+        
+        .message.loading {
+            background: #1a1a1a;
+        }
+        
+        .light-mode .message.loading {
+            background: #f5f5f5;
+        }
+        
+        .loading-dots {
+            display: flex;
+            gap: 6px;
+            padding: 8px;
+        }
+        
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            background: #00bcd4;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+        
+        .light-mode .loading-dots span {
+            background: #00bcd4;
+        }
+        
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        
+        /* Input Area */
+        .input-area {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 12px 15px;
+            background: #121212;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 0.95rem;
+            resize: none;
+            min-height: 50px;
+            max-height: 100px;
+        }
+        
+        .light-mode .chat-input {
+            background: white;
+            border: 1px solid #ddd;
+            color: #333;
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            border-color: #00bcd4;
+            box-shadow: 0 0 0 2px rgba(0, 188, 212, 0.2);
+        }
+        
+        .send-btn {
+            background: #00bcd4;
+            color: white;
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .send-btn:hover:not(:disabled) {
+            background: #0097a7;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .send-btn:disabled {
+            background: #333;
+            cursor: not-allowed;
+        }
+        
+        .light-mode .send-btn:disabled {
+            background: #cccccc;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            color: #666;
+            font-size: 0.85rem;
+        }
+        
+        /* Scrollbar Styling */
+        .messages-area::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .messages-area::-webkit-scrollbar-track {
+            background: #1a1a1a;
+            border-radius: 3px;
+        }
+        
+        .light-mode .messages-area::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .messages-area::-webkit-scrollbar-thumb {
+            background: #00bcd4;
+            border-radius: 3px;
+        }
+        
+        .messages-area::-webkit-scrollbar-thumb:hover {
+            background: #0097a7;
+        }
+        
+        /* Initial instructions */
+        .instructions {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        .light-mode .instructions {
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 5px;
+            }
+            
+            .title {
+                font-size: 1.5rem;
+            }
+            
+            .chat-container {
+                padding: 12px;
+                height: calc(100vh - 180px);
+            }
+            
+            .message {
+                max-width: 90%;
+                padding: 10px;
+            }
+            
+            .theme-toggle {
+                position: relative;
+                right: auto;
+                top: auto;
+                margin-top: 10px;
+                margin-left: auto;
+                margin-right: auto;
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">Smart Traffic System Assistant</h1>
+            <p class="subtitle">
+                Ask questions about the smart traffic control system project
+            </p>
+            <button class="theme-toggle" id="themeToggle">
+                ☀️
+            </button>
+        </header>
+        
+        <!-- Chat Container -->
+        <div class="chat-container">
+            <!-- Messages Area -->
+            <div class="messages-area" id="messagesArea">
+                <!-- Initial instructions -->
+                <div class="instructions" id="instructions">
+                    Type your questions about the smart traffic system below.<br>
+                    Example: "What is the system mechanism?" or "Tell me about the results."
+                </div>
+            </div>
+            
+            <!-- Input Area -->
+            <div class="input-area">
+                <textarea 
+                    class="chat-input" 
+                    id="chatInput" 
+                    placeholder="Type your question here..."
+                    rows="2"
+                    onkeydown="handleKeyDown(event)"
+                ></textarea>
+                <button class="send-btn" id="sendBtn" disabled>
+                    →
+                </button>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer>
+            <p>Smart Traffic System Project Assistant</p>
+        </footer>
+    </div>
+
+    <script>
+        // DOM Elements
+        const messagesArea = document.getElementById('messagesArea');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const themeToggle = document.getElementById('themeToggle');
+        const instructions = document.getElementById('instructions');
+        
+        // SMART TRAFFIC SYSTEM KNOWLEDGE BASE - ALL QUESTIONS WITH YOUR EXACT TEXT
+        const knowledgeBase = {
+            // SYSTEM MECHANISM - Your exact text
+            "mechanism": "T-shaped road and an open circular intersection in a smart traffic management system, together with automatic gates and a green lane specified for emergency vehicles. Ultrasonic detects traffic density in real time, while NFC tags and microcontroller boards ensure that ambulances are prioritized, and traffic signals adapt dynamically. This system works on improving the efficiency of traffic flow and thereby reducing the emission of harmful gases emanating from running motors and lowering emergency response times.",
+            
+            // ABOUT - Your exact text
+            "about": "To confront these growing pressures, smart traffic congestion features were developed with a T-shaped road layout with an open circular intersection that has four automatic gates. Each road consists of two lanes, with a green lane reserved for emergencies, which opens and closes automatically. Ambulance car was detected by an NFC tag at a specific point in road and chip was installed under the ambulance. Arduino UNO board that processes data and issuing orders, closes traffic lights and opens the green lane gate. The green lane is also temporarily opened during heavy traffic to reduce congestion. Ultrasonic sensors were installed along the roads at equal intervals, emitting high-frequency waves to monitor traffic density. The system able to detect accidents vehicles, an air-quality sensor MQ135 was installed to monitor environmental impact.",
+            
+            // CHALLENGE - Your exact text
+            "challenge": "Egypt stands today at a pivotal crossroads. Pollution continues to burden our air and soil. In Greater Cairo alone, vehicle emissions contribute 26% of airborne particulate matter and more than 90% of carbon monoxide, according to the Egyptian Environmental Affairs Agency. At the same time, rapid population growth intensifies pressure on every street. The number of licensed vehicles has continued to surge rising from about 4.8 million in 2009 to over 10.4 million in 2024, placing unprecedented strain on an already saturated road network. As cities expand and dependence on private vehicles increases, traffic congestion has transformed from a minor annoyance into a huge urban crisis. Traditional traffic control systems are no longer capable of managing the rapidly shifting flow of vehicles. Without innovative solutions, cities will continue to face chronic delays, high fuel consumption, elevated accident rates, and rising emissions.",
+            
+            // TEAM - Your exact text
+            "team": "Youssef Khaled, youssef.2323056@stemqena.moe.edu.eg, Hardware & System Integration. Marwan Mahmoud, marwan.2323047@stemqena.moe.edu.eg, Software & AI Development. Mohamed Mahmoud, mohamd.2323046@stemqena.moe.edu.eg, Testing & Data Analysis.",
+            
+            // RESULTS - Your exact text
+            "results": "The system was designed to meet important design requirements and demonstrates significant improvements across multiple performance metrics. The average system accuracy reached 85%, with traffic flow increased from 570±13 to 701±18 vehicles per hour. Average trail time reducing from 28±0.2 to 20.8±0.2 second, while individual car trip time improved from 7.3±0.2 second to 5.4±0.2 second, reflecting a rapid system response time of 2.2 seconds. Moreover, the system maintains a favorable Congestion Index of .13±0.02 better than before .5±0.02 that represent terrible Congestion Index, and it shows itself in reducing pollutant level from 1676.0 ±10 to 657.8 ± 10 ppm, while operating the system with an power consumption 93.3 ±.3.",
+            
+            // METHODS - Your exact text
+            "methods": "Safety was taken into consideration, using insulated gloves, wearing protective goggles, and building the prototype under the supervision of trained craftsmen. The wooden structure 150cm x75 cm as shown in figure and durable cardboard catted to represent roads frame 74 cm x 18 cm. The structure of cars, ambulance car and traffic lights were made by CNC machine from wood and in fab lab. Two ultrasonic sensors are installed under the road at the start and end and one in the green lane, two gates installed with two servo motors one was installed in the beginning green lane and second on the side of lane, NFC chip installed at specific point in road and tag was installed under the ambulance, MQ135 sensor was installed on the side of the road. The ambulance car includes a DC motor, motor driver (L298N), ESP32, and a front ultrasonic sensor. The ESP32 controls the motor driver to adjust speed and direction, while the ultrasonic sensor detects obstacles. An NFC tag is fixed underneath the ambulance for automatic identification on the road. All parts are powered by a small battery, with protected wiring inside a CNC-cut wooden frame for stability.",
+            
+            // NEGATIVE RESULTS - Your exact text
+            "negative results": "The system's accuracy is compromised under specific environmental conditions, such as rain, fog, and temperature extremes, interfering with ultrasonic sensor readings. The ambulance car does not pass directly over the designated NFC detection point or deviates from its expected path, so the system cannot work. Driver behavior and unexpected actions can negatively impact system performance, such as entering the green lane without authorization, hesitation at the gate, or sudden lane changes. Someone might try to hack the system by interfere with the wireless signal, clone the NFC tag, or accessing the control unit to manipulate gate operations or traffic light timing, so he disrupt traffic flow.",
+            
+            // LEARNING TRANSFER - Your exact text
+            "learning transfer": "BI.3.04 _ Structure & Function of Neuron: Sensors act as dendrites that detecting external inputs, the Arduino functions as the soma that processes information, and signals travel through wires similar to axons. CH.3.02 _ Robust design: Developing an effective traffic-control system required the same principles of strong experimental design. Controlled conditions, defined variables, repeated testing, and reliable data recording. Factors such as sensor sensitivity, vehicles flow rate, and environmental changes were treated as experimental variables to refine system performance. CH.3.01 _ Accuracy & precision: directly applies to the sensors. Consistent and exact distance readings, car detection, and response timings are essential for the system to make correct decisions and avoid errors in traffic control. PH.3.01 _ Travelling Waves: Communication between system components depends on electromagnetic signals, Whether using Bluetooth, RF modules, or Wi-Fi, the Arduino sends and receives data packets that behave like traveling EM waves, carrying information about traffic density, position, or system status. Wave propagation, frequency variation. PH.3.04 – Communication Systems: understand how sensors act as transmitters and the Arduino as a receiver, enabling real-time data flow. Wave prevalence, frequency variation, and EM communication concepts supported the use of ultrasonic sensors and NFC ambulance detection.",
+            
+            // CONCLUSION - Your exact text
+            "conclusion": "Smart traffic system has shown itself to be effective and eco-friendly. The data analysis clearly proves that the project successfully met the design requirements. Test results of the prototype show average system accuracy reached 85%, with traffic flow increased from 570± 13 to 701± 18 vehicles per hour. Average trail time reducing from 28±0.2 to 20.8±0.2 second, while individual car trip time improved from 7.3±0.2 second to 5.4±0.2 second, reflecting a rapid system response time of 2.2 seconds. Moreover, the system maintains a favorable Congestion Index of .13±0.02 better than before .5±0.02 that represent terrible Congestion Index, and it shows itself in reducing pollutant level from 1676.0 ±10 to 657.8 ± 10 ppm, while operating the system with an power consumption 93.3 ±.3 watt. The design provides Low cost, easy, quick maintenance without major traffic disruption, and comprehensive road control not just at the intersection region. overcoming the key weaknesses of the SCATS project. Additionally, our project corrects the flaws of the SURTRAC traffic system without complexity that the system not only adjusts signals but also creates a virtual alternative route, alleviating congestion and providing immediate response for emergency vehicles. Our project ability to handle high levels of pollution management traffic flow makes it durable and effective in improving traffic flow and the environment our smart traffic system is best suited for Cairo Governorate especially, Abasia Square where multiple converging streets create natural bottlenecks and direct access to Cairo University Specialized Hospital.",
+            
+            // RECOMMENDATIONS - Your exact text
+            "recommendations": "The following modifications are suggested to improve the efficiency, scalability, and reliability of the smart traffic system: 1) Dynamic Road System: Implement servo-controlled retractable lane dividers that allow roads to reshape themselves in real time. This increases lane capacity during peak congestion and improves overall traffic flow efficiency. 2) Vehicle-to-Vehicle (V2V) Communication: Enable cars to exchange real-time data such as traffic density, average speed, and blocked routes. This allows vehicles to auto reroute, warn each other about congestion, and maintain smoother and safer flow across intersections. 3) Cybersecurity Enhancements: Since the system may face risks like wireless interference, NFC tag cloning, or unauthorized access to the control unit, strong protection must be added. Recommended measures include encrypted communication, secure authentication, and continuous intrusion monitoring. 4) Renewable Energy Harvesting: Install solar panels and small airflow turbines along the road to generate energy from sunlight and vehicle-induced air pressure. This clean energy can power sensors, gateways, dynamic road markings, and traffic signals, reducing operational cost and supporting long-term sustainability.",
+            
+            // Common variations
+            "t shaped road": "T-shaped road and an open circular intersection in a smart traffic management system, together with automatic gates and a green lane specified for emergency vehicles.",
+            "system design": "To confront these growing pressures, smart traffic congestion features were developed with a T-shaped road layout with an open circular intersection that has four automatic gates.",
+            "how it works": "Ambulance car was detected by an NFC tag at a specific point in road and chip was installed under the ambulance. Arduino UNO board that processes data and issuing orders, closes traffic lights and opens the green lane gate.",
+            "ultrasonic sensors": "Ultrasonic sensors were installed along the roads at equal intervals, emitting high-frequency waves to monitor traffic density.",
+            "air quality sensor": "An air-quality sensor MQ135 was installed to monitor environmental impact.",
+            "traffic in egypt": "Egypt stands today at a pivotal crossroads. Pollution continues to burden our air and soil. In Greater Cairo alone, vehicle emissions contribute 26% of airborne particulate matter and more than 90% of carbon monoxide.",
+            "vehicle statistics": "The number of licensed vehicles has continued to surge rising from about 4.8 million in 2009 to over 10.4 million in 2024.",
+            "test results": "The average system accuracy reached 85%, with traffic flow increased from 570±13 to 701±18 vehicles per hour. Individual car trip time improved from 7.3±0.2 second to 5.4±0.2 second.",
+            "response time": "Rapid system response time of 2.2 seconds.",
+            "congestion index results": "The system maintains a favorable Congestion Index of .13±0.02 better than before .5±0.02 that represent terrible Congestion Index.",
+            "pollution results": "Reducing pollutant level from 1676.0 ±10 to 657.8 ± 10 ppm.",
+            "power results": "Operating the system with an power consumption 93.3 ±.3.",
+            "construction methods": "The wooden structure 150cm x75 cm, roads frame 74 cm x 18 cm. Structure made by CNC machine from wood in fab lab.",
+            "sensor installation": "Two ultrasonic sensors are installed under the road at the start and end and one in the green lane. NFC chip installed at specific point in road. MQ135 sensor was installed on the side of the road.",
+            "ambulance design": "The ambulance car includes a DC motor, motor driver (L298N), ESP32, and a front ultrasonic sensor. The ESP32 controls the motor driver to adjust speed and direction, while the ultrasonic sensor detects obstacles.",
+            "system problems": "The system's accuracy is compromised under specific environmental conditions. The ambulance car does not pass directly over the designated NFC detection point. Driver behavior and unexpected actions can negatively impact system performance.",
+            "cybersecurity issues": "Someone might try to hack the system by interfere with the wireless signal, clone the NFC tag, or accessing the control unit to manipulate gate operations or traffic light timing.",
+            "biology learning": "BI.3.04 _ Structure & Function of Neuron: Sensors act as dendrites that detecting external inputs, the Arduino functions as the soma that processes information, and signals travel through wires similar to axons.",
+            "chemistry learning": "CH.3.02 _ Robust design: Developing an effective traffic-control system required the same principles of strong experimental design. CH.3.01 _ Accuracy & precision: directly applies to the sensors.",
+            "physics learning": "PH.3.01 _ Travelling Waves: Communication between system components depends on electromagnetic signals. PH.3.04 – Communication Systems: understand how sensors act as transmitters and the Arduino as a receiver.",
+            "project success": "Smart traffic system has shown itself to be effective and eco-friendly. The data analysis clearly proves that the project successfully met the design requirements.",
+            "advantages": "Low cost, easy, quick maintenance without major traffic disruption, and comprehensive road control not just at the intersection region.",
+            "comparison to scats": "Overcoming the key weaknesses of the SCATS project.",
+            "comparison to surtrac": "Our project corrects the flaws of the SURTRAC traffic system without complexity that the system not only adjusts signals but also creates a virtual alternative route.",
+            "best location": "Our smart traffic system is best suited for Cairo Governorate especially, Abasia Square where multiple converging streets create natural bottlenecks and direct access to Cairo University Specialized Hospital.",
+            "future improvements": "1) Dynamic Road System: Implement servo-controlled retractable lane dividers. 2) Vehicle-to-Vehicle (V2V) Communication. 3) Cybersecurity Enhancements. 4) Renewable Energy Harvesting with solar panels and small airflow turbines."
+        };
+        
+        // Theme Toggle
+        let isDarkMode = true;
+        
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            if (isDarkMode) {
+                document.body.classList.remove('light-mode');
+                themeToggle.innerHTML = '☀️';
+                themeToggle.title = 'Switch to light mode';
+            } else {
+                document.body.classList.add('light-mode');
+                themeToggle.innerHTML = '🌙';
+                themeToggle.title = 'Switch to dark mode';
+            }
+            // Save preference
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        }
+        
+        // Update send button state
+        function updateSendButton() {
+            const message = chatInput.value.trim();
+            sendBtn.disabled = !message;
+        }
+        
+        // Handle Enter key
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+        
+        // Add message to chat
+        function addMessage(content, role) {
+            // Remove instructions if this is the first message
+            if (instructions.style.display !== 'none') {
+                instructions.style.display = 'none';
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            
+            const header = document.createElement('div');
+            header.className = 'message-header';
+            header.textContent = role === 'user' ? 'You' : 'Assistant';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = content;
+            
+            messageDiv.appendChild(header);
+            messageDiv.appendChild(contentDiv);
+            messagesArea.appendChild(messageDiv);
+            
+            // Scroll to bottom smoothly
+            setTimeout(() => {
+                messagesArea.scrollTop = messagesArea.scrollHeight;
+            }, 10);
+        }
+        
+        // Show loading indicator
+        function showLoading() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message assistant loading';
+            loadingDiv.id = 'loadingMessage';
+            
+            const header = document.createElement('div');
+            header.className = 'message-header';
+            header.textContent = 'Assistant';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            const dots = document.createElement('div');
+            dots.className = 'loading-dots';
+            dots.innerHTML = '<span></span><span></span><span></span>';
+            
+            contentDiv.appendChild(dots);
+            loadingDiv.appendChild(header);
+            loadingDiv.appendChild(contentDiv);
+            messagesArea.appendChild(loadingDiv);
+            
+            // Scroll to show loading
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+        
+        // Hide loading indicator
+        function hideLoading() {
+            const loadingDiv = document.getElementById('loadingMessage');
+            if (loadingDiv) {
+                loadingDiv.remove();
+            }
+        }
+        
+        // Find answer for question - IMPROVED MATCHING
+        function findAnswer(question) {
+            const lowerQuestion = question.toLowerCase();
+            
+            // Check main categories first
+            const mainCategories = [
+                "mechanism", "about", "challenge", "team", "results", "methods", 
+                "negative results", "learning transfer", "conclusion", "recommendations"
+            ];
+            
+            for (const category of mainCategories) {
+                if (lowerQuestion.includes(category)) {
+                    return knowledgeBase[category];
+                }
+            }
+            
+            // Check other variations
+            if (lowerQuestion.includes('t shape') || lowerQuestion.includes('t-shaped')) {
+                return knowledgeBase["t shaped road"];
+            }
+            
+            if (lowerQuestion.includes('ultrasonic') || lowerQuestion.includes('sensor')) {
+                return knowledgeBase["ultrasonic sensors"];
+            }
+            
+            if (lowerQuestion.includes('nfc') || lowerQuestion.includes('tag')) {
+                return knowledgeBase["how it works"];
+            }
+            
+            if (lowerQuestion.includes('arduino') || lowerQuestion.includes('microcontroller')) {
+                return knowledgeBase["how it works"];
+            }
+            
+            if (lowerQuestion.includes('pollution') || lowerQuestion.includes('air quality')) {
+                if (lowerQuestion.includes('egypt') || lowerQuestion.includes('cairo')) {
+                    return knowledgeBase["traffic in egypt"];
+                }
+                return knowledgeBase["pollution results"];
+            }
+            
+            if (lowerQuestion.includes('vehicle') && lowerQuestion.includes('growth')) {
+                return knowledgeBase["vehicle statistics"];
+            }
+            
+            if (lowerQuestion.includes('test') || lowerQuestion.includes('result')) {
+                return knowledgeBase["test results"];
+            }
+            
+            if (lowerQuestion.includes('response time') || lowerQuestion.includes('fast')) {
+                return knowledgeBase["response time"];
+            }
+            
+            if (lowerQuestion.includes('congestion index')) {
+                return knowledgeBase["congestion index results"];
+            }
+            
+            if (lowerQuestion.includes('power') || lowerQuestion.includes('energy')) {
+                return knowledgeBase["power results"];
+            }
+            
+            if (lowerQuestion.includes('build') || lowerQuestion.includes('construct')) {
+                return knowledgeBase["construction methods"];
+            }
+            
+            if (lowerQuestion.includes('ambulance') || lowerQuestion.includes('car design')) {
+                return knowledgeBase["ambulance design"];
+            }
+            
+            if (lowerQuestion.includes('problem') || lowerQuestion.includes('limitation')) {
+                return knowledgeBase["system problems"];
+            }
+            
+            if (lowerQuestion.includes('hack') || lowerQuestion.includes('cyber')) {
+                return knowledgeBase["cybersecurity issues"];
+            }
+            
+            if (lowerQuestion.includes('biology') || lowerQuestion.includes('neuron')) {
+                return knowledgeBase["biology learning"];
+            }
+            
+            if (lowerQuestion.includes('chemistry')) {
+                return knowledgeBase["chemistry learning"];
+            }
+            
+            if (lowerQuestion.includes('physics') || lowerQuestion.includes('wave')) {
+                return knowledgeBase["physics learning"];
+            }
+            
+            if (lowerQuestion.includes('success') || lowerQuestion.includes('effective')) {
+                return knowledgeBase["project success"];
+            }
+            
+            if (lowerQuestion.includes('advantage') || lowerQuestion.includes('benefit')) {
+                return knowledgeBase["advantages"];
+            }
+            
+            if (lowerQuestion.includes('scats')) {
+                return knowledgeBase["comparison to scats"];
+            }
+            
+            if (lowerQuestion.includes('surtrac')) {
+                return knowledgeBase["comparison to surtrac"];
+            }
+            
+            if (lowerQuestion.includes('location') || lowerQuestion.includes('where')) {
+                return knowledgeBase["best location"];
+            }
+            
+            if (lowerQuestion.includes('future') || lowerQuestion.includes('improve')) {
+                return knowledgeBase["future improvements"];
+            }
+            
+            // Greetings
+            if (lowerQuestion.includes('hello') || lowerQuestion.includes('hi')) {
+                return "Hello! Ask me about: mechanism, challenge, team, results, methods, learning transfer, conclusion, or recommendations.";
+            }
+            
+            if (lowerQuestion.includes('who are you')) {
+                return "I'm an assistant for the smart traffic system project. I can answer questions about all aspects of the project using the exact project text.";
+            }
+            
+            // Default response
+            return knowledgeBase["mechanism"];
+        }
+        
+        // Simulate thinking time
+        function simulateThinking() {
+            return new Promise(resolve => {
+                setTimeout(resolve, 300 + Math.random() * 500);
+            });
+        }
+        
+        // Send message
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, 'user');
+            
+            // Clear input
+            chatInput.value = '';
+            updateSendButton();
+            
+            // Show loading
+            showLoading();
+            
+            try {
+                // Simulate thinking
+                await simulateThinking();
+                
+                // Get response
+                const response = findAnswer(message);
+                
+                // Hide loading
+                hideLoading();
+                
+                // Add response
+                addMessage(response, 'assistant');
+                
+            } catch (error) {
+                hideLoading();
+                addMessage("Ask about: mechanism, challenge, team, results, methods, learning transfer, conclusion, or recommendations.", 'assistant');
+            }
+        }
+        
+        // Initialize
+        function init() {
+            chatInput.addEventListener('input', updateSendButton);
+            sendBtn.addEventListener('click', sendMessage);
+            themeToggle.addEventListener('click', toggleTheme);
+            
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                isDarkMode = false;
+                document.body.classList.add('light-mode');
+                themeToggle.innerHTML = '🌙';
+                themeToggle.title = 'Switch to dark mode';
+            } else {
+                themeToggle.title = 'Switch to light mode';
+            }
+            
+            updateSendButton();
+            chatInput.focus();
+        }
+        
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

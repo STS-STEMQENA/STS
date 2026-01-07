@@ -1,0 +1,1964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STS - Smart Traffic System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ===== NAVBAR STYLES ===== */
+        .bloopy-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .light-mode .bloopy-nav {
+            background: rgba(240, 244, 248, 0.95);
+            border-bottom: 1px solid rgba(0, 204, 102, 0.1);
+        }
+
+        /* Logo/Brand Styling */
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-brand .brand-text {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-decoration: none;
+            letter-spacing: 1px;
+            transition: var(--transition);
+        }
+
+        .nav-brand:hover .brand-text {
+            transform: scale(1.05);
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .nav-brand i {
+            font-size: 2rem;
+            color: var(--primary-green);
+        }
+
+        /* Center Navigation Links */
+        .nav-menu ul {
+            display: flex;
+            gap: 1.5rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-link {
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            transition: var(--transition);
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-green);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .light-mode .nav-link:hover {
+            background: rgba(0, 204, 102, 0.15);
+        }
+
+        .nav-link.active {
+            color: var(--primary-green);
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .light-mode .nav-link.active {
+            background: rgba(0, 204, 102, 0.2);
+            border: 1px solid rgba(0, 204, 102, 0.4);
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 2px;
+            background: var(--primary-green);
+            border-radius: 2px;
+        }
+
+        /* Dropdown Menu for "Pages" */
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: var(--card-bg);
+            min-width: 200px;
+            border-radius: 10px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 255, 136, 0.1);
+            padding: 0.5rem 0;
+            z-index: 1001;
+        }
+
+        .light-mode .dropdown-content {
+            background: var(--card-bg);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        .dropdown-content a {
+            display: block;
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            transition: var(--transition);
+            border-radius: 0;
+            background: none;
+            border: none;
+        }
+
+        .dropdown-content a:hover {
+            color: var(--primary-green);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        /* Right-Action Buttons */
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-icon {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            color: var(--primary-green);
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+            display: grid;
+            place-items: center;
+            font-size: 1.1rem;
+        }
+
+        .light-mode .btn-icon {
+            background: rgba(0, 204, 102, 0.15);
+            border: 1px solid rgba(0, 204, 102, 0.3);
+        }
+
+        .btn-icon:hover {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--primary-green);
+            border-color: var(--primary-green);
+            transform: translateY(-2px);
+        }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--primary-green);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: var(--transition);
+        }
+
+        /* Mobile Menu */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.98);
+            backdrop-filter: blur(15px);
+            padding: 2rem;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+            transform: translateY(-100%);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 999;
+        }
+
+        .light-mode .mobile-menu {
+            background: rgba(240, 244, 248, 0.98);
+        }
+
+        .mobile-menu.active {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .mobile-menu ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .mobile-menu .nav-link {
+            display: block;
+            padding: 1rem;
+            border-radius: 10px;
+        }
+
+        .mobile-menu .dropdown-content {
+            position: static;
+            display: none;
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            box-shadow: none;
+            padding: 0.5rem 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .light-mode .mobile-menu .dropdown-content {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .mobile-menu .dropdown.active .dropdown-content {
+            display: block;
+        }
+
+        /* ===== RESET & BASE STYLES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Orbitron', sans-serif;
+        }
+        
+        :root {
+            --primary-green: #00ff88;
+            --primary-blue: #0088ff;
+            --primary-purple: #9d4edd;
+            --primary-red: #ff4757;
+            --primary-yellow: #ffd32a;
+            --dark-bg: #000000;
+            --darker-bg: #000000;
+            --card-bg: rgba(30, 30, 30, 0.85);
+            --text-light: #e6f1ff;
+            --text-gray: #8892b0;
+            --shadow-color: rgba(0, 136, 255, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --section-spacing: 100px;
+            --mobile-section-spacing: 60px;
+        }
+        
+        /* Light mode variables */
+        .light-mode {
+            --primary-green: #00cc66;
+            --primary-blue: #0066cc;
+            --primary-purple: #7a3db8;
+            --primary-red: #e63946;
+            --primary-yellow: #e6b400;
+            --dark-bg: #f0f4f8;
+            --darker-bg: #e1e8f0;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-light: #1a202c;
+            --text-gray: #4a5568;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 100px;
+        }
+        
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+            transition: var(--transition);
+            padding-top: 70px;
+        }
+        
+        /* ===== ANIMATED BACKGROUND ===== */
+        .particles-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -2;
+            overflow: hidden;
+        }
+        
+        .particle {
+            position: absolute;
+            background: var(--primary-green);
+            border-radius: 50%;
+            animation: floatParticle 20s infinite linear;
+        }
+        
+        @keyframes floatParticle {
+            0% { transform: translateY(100vh) translateX(0) scale(0); opacity: 0; }
+            10% { opacity: 0.5; }
+            50% { transform: translateY(50vh) translateX(100px) scale(1); opacity: 0.8; }
+            100% { transform: translateY(-100px) translateX(200px) scale(0); opacity: 0; }
+        }
+        
+        /* ===== GLOWING GRID BACKGROUND ===== */
+        .grid-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background-image: 
+                linear-gradient(rgba(0, 136, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 136, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            mask-image: radial-gradient(circle at center, black 30%, transparent 70%);
+        }
+        
+        .light-mode .grid-bg {
+            background-image: 
+                linear-gradient(rgba(0, 102, 204, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 102, 204, 0.08) 1px, transparent 1px);
+        }
+        
+        @keyframes gridMove {
+            0% { transform: translateY(0) translateX(0); }
+            100% { transform: translateY(50px) translateX(50px); }
+        }
+        
+        /* ===== HERO SECTION ===== */
+        #home {
+            min-height: calc(100vh - 70px);
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding: 60px 2rem 60px;
+            text-align: center;
+            background: radial-gradient(ellipse at center, rgba(0, 255, 136, 0.1) 0%, transparent 70%);
+        }
+        
+        .light-mode #home {
+            background: radial-gradient(ellipse at center, rgba(0, 204, 102, 0.15) 0%, transparent 70%);
+        }
+        
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+        
+        .hero-text {
+            text-align: left;
+        }
+        
+        .main-title {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            position: relative;
+        }
+        
+        .main-title-text {
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: block;
+            padding-bottom: 20px;
+            position: relative;
+        }
+        
+        /* Animated underline for "Smart Traffic System" */
+        .main-title-text::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 150px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-green), var(--primary-blue));
+            border-radius: 2px;
+            animation: underlineMove 3s ease-in-out infinite;
+        }
+        
+        @keyframes underlineMove {
+            0%, 100% {
+                transform: translateX(0);
+                width: 150px;
+            }
+            25% {
+                transform: translateX(50px);
+                width: 200px;
+            }
+            50% {
+                transform: translateX(100px);
+                width: 150px;
+            }
+            75% {
+                transform: translateX(50px);
+                width: 200px;
+            }
+        }
+        
+        .typing-text {
+            font-size: 2.2rem;
+            color: var(--primary-blue);
+            margin-bottom: 1.5rem;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .typing-cursor {
+            display: inline-block;
+            width: 3px;
+            height: 40px;
+            background: var(--primary-green);
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .main-subtitle {
+            font-size: 1.4rem;
+            margin-bottom: 3rem;
+            color: var(--text-gray);
+            line-height: 1.8;
+        }
+        
+        /* ===== 3D MODEL CONTAINER ===== */
+        .model-container {
+            background: linear-gradient(145deg, var(--card-bg), rgba(0, 0, 0, 0.8));
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(0, 255, 136, 0.1);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            height: 500px;
+        }
+        
+        .light-mode .model-container {
+            background: linear-gradient(145deg, var(--card-bg), rgba(255, 255, 255, 0.9));
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .model-container:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary-green);
+            box-shadow: 0 30px 60px rgba(0, 255, 136, 0.15);
+        }
+        
+        .light-mode .model-container:hover {
+            box-shadow: 0 30px 60px rgba(0, 204, 102, 0.2);
+        }
+        
+        .model-wrapper {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: var(--darker-bg);
+        }
+        
+        /* Sketchfab iframe styling */
+        .sketchfab-embed-wrapper {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .sketchfab-embed-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .model-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-green);
+            font-size: 1.2rem;
+            z-index: 10;
+            transition: opacity 0.5s ease;
+        }
+        
+        .model-loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .model-loading i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: spin 2s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .model-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            color: var(--primary-green);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .control-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .control-btn.active {
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+            color: white;
+            border-color: transparent;
+        }
+        
+        .model-info {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        
+        .model-title {
+            font-size: 1.5rem;
+            color: var(--primary-green);
+            margin-bottom: 0.5rem;
+        }
+        
+        .model-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 1.2rem 2.5rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 50px;
+            border: 2px solid transparent;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-button.primary {
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+            color: white;
+        }
+        
+        .cta-button.secondary {
+            background: transparent;
+            color: var(--primary-green);
+            border-color: var(--primary-green);
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 255, 136, 0.2);
+        }
+        
+        .light-mode .cta-button:hover {
+            box-shadow: 0 20px 40px rgba(0, 204, 102, 0.2);
+        }
+        
+        .cta-button:hover i {
+            transform: translateX(5px);
+        }
+        
+        .cta-button i {
+            transition: var(--transition);
+        }
+        
+        /* ===== UPDATED ABOUT SECTION ===== */
+        .about-problem-solution {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+        
+        .problem-box, .solution-box {
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 136, 255, 0.1);
+            transition: var(--transition);
+        }
+        
+        .problem-box:hover, .solution-box:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-blue);
+            box-shadow: 0 20px 40px var(--shadow-color);
+        }
+        
+        .problem-box {
+            border-left: 5px solid var(--primary-red);
+        }
+        
+        .solution-box {
+            border-left: 5px solid var(--primary-green);
+        }
+        
+        .problem-title, .solution-title {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .problem-title {
+            color: var(--primary-red);
+        }
+        
+        .solution-title {
+            color: var(--primary-green);
+        }
+        
+        .about-text p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-gray);
+            margin-bottom: 1.2rem;
+        }
+        
+        /* ===== FEATURES SECTION ===== */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature-card {
+            background: linear-gradient(145deg, var(--card-bg), rgba(0, 0, 0, 0.8));
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            border: 1px solid rgba(0, 255, 136, 0.1);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .light-mode .feature-card {
+            background: linear-gradient(145deg, var(--card-bg), rgba(255, 255, 255, 0.9));
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 136, 0.05), transparent);
+            transform: rotate(45deg);
+            transition: var(--transition);
+        }
+        
+        .feature-card:hover::before {
+            transform: rotate(45deg) translate(50%, 50%);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary-green);
+            box-shadow: 0 25px 50px rgba(0, 255, 136, 0.1);
+        }
+        
+        .light-mode .feature-card:hover {
+            box-shadow: 0 25px 50px rgba(0, 204, 102, 0.15);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            color: var(--primary-green);
+            margin-bottom: 1.5rem;
+            transition: var(--transition);
+        }
+        
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1);
+            color: var(--primary-blue);
+        }
+        
+        .feature-value {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--primary-green);
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+        
+        .feature-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+        
+        .feature-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        /* ===== TEAM SECTION ===== */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2.5rem;
+        }
+        
+        .team-card {
+            background: linear-gradient(145deg, var(--card-bg), rgba(0, 0, 0, 0.8));
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            border: 1px solid rgba(0, 255, 136, 0.1);
+            transition: var(--transition);
+        }
+        
+        .light-mode .team-card {
+            background: linear-gradient(145deg, var(--card-bg), rgba(255, 255, 255, 0.9));
+        }
+        
+        .team-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary-green);
+            box-shadow: 0 25px 50px rgba(0, 255, 136, 0.15);
+        }
+        
+        .light-mode .team-card:hover {
+            box-shadow: 0 25px 50px rgba(0, 204, 102, 0.2);
+        }
+        
+        .member-photo {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 1.5rem;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--primary-green);
+            transition: var(--transition);
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .member-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+        
+        .member-photo:hover img {
+            transform: scale(1.05);
+        }
+        
+        .member-photo::after {
+            content: 'View Logbook';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 2;
+        }
+        
+        .member-photo:hover::after {
+            opacity: 1;
+        }
+        
+        .team-card:hover .member-photo {
+            border-color: var(--primary-blue);
+            transform: scale(1.05);
+        }
+        
+        .member-name {
+            font-size: 1.8rem;
+            color: var(--primary-green);
+            margin-bottom: 0.5rem;
+        }
+        
+        .member-email {
+            color: var(--primary-yellow);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            word-break: break-all;
+        }
+        
+        .member-role {
+            color: var(--primary-yellow);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+        
+        .logbook-info {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            font-style: italic;
+        }
+        
+        /* ===== SECTIONS COMMON STYLES ===== */
+        .content-section {
+            padding: var(--section-spacing) 2rem;
+            position: relative;
+            min-height: auto;
+            display: flex;
+            align-items: center;
+        }
+        
+        .content-section:nth-child(even) {
+            background: rgba(0, 0, 0, 0.5);
+        }
+        
+        .light-mode .content-section:nth-child(even) {
+            background: rgba(224, 232, 240, 0.5);
+        }
+        
+        .section-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        
+        .section-title {
+            font-size: 3.2rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 15px;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-green), var(--primary-blue));
+            border-radius: 2px;
+        }
+        
+        .section-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-gray);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+        
+        /* ===== FOOTER ===== */
+        footer {
+            background: var(--darker-bg);
+            padding: 4rem 2rem;
+            border-top: 1px solid rgba(0, 255, 136, 0.1);
+            margin-top: var(--section-spacing);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .footer-logo {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .footer-text {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            line-height: 1.8;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        
+        .social-links a {
+            color: var(--text-gray);
+            font-size: 1.5rem;
+            transition: var(--transition);
+        }
+        
+        .social-links a:hover {
+            color: var(--primary-green);
+            transform: translateY(-5px);
+        }
+        
+        .copyright {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(0, 255, 136, 0.1);
+        }
+        
+        /* ===== SCROLL PROGRESS ===== */
+        .scroll-progress {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-green), var(--primary-blue));
+            z-index: 1001;
+            transition: width 0.1s ease;
+        }
+        
+        /* ===== BACK TO TOP ===== */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            z-index: 999;
+            border: none;
+            box-shadow: 0 10px 20px rgba(0, 255, 136, 0.2);
+        }
+        
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .back-to-top:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 15px 30px rgba(0, 255, 136, 0.3);
+        }
+        
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 1200px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+            
+            .hero-text {
+                text-align: center;
+            }
+            
+            .main-title-text::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            
+            .main-title {
+                font-size: 3.5rem;
+            }
+            
+            .cta-buttons {
+                justify-content: center;
+            }
+            
+            .about-problem-solution {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .nav-menu ul {
+                gap: 1rem;
+            }
+            
+            .nav-link {
+                font-size: 0.9rem;
+                padding: 0.5rem 0.8rem;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .main-title {
+                font-size: 3rem;
+            }
+            
+            .section-title {
+                font-size: 2.5rem;
+            }
+            
+            .typing-text {
+                font-size: 1.8rem;
+                height: 50px;
+            }
+            
+            .model-wrapper {
+                height: 350px;
+            }
+            
+            .model-container {
+                height: 450px;
+            }
+            
+            .problem-title, .solution-title {
+                font-size: 1.8rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            /* Mobile navbar styles */
+            .menu-toggle {
+                display: block;
+            }
+            
+            .nav-menu, .nav-actions {
+                display: none;
+            }
+            
+            .mobile-menu {
+                display: block;
+            }
+            
+            .main-title {
+                font-size: 2.5rem;
+            }
+            
+            .typing-text {
+                font-size: 1.5rem;
+                height: 40px;
+            }
+            
+            .main-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .section-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .team-grid,
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .content-section {
+                padding: var(--mobile-section-spacing) 1rem;
+            }
+            
+            footer {
+                margin-top: var(--mobile-section-spacing);
+                padding: 3rem 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .bloopy-nav {
+                padding: 1rem;
+            }
+            
+            .main-title {
+                font-size: 2rem;
+            }
+            
+            .typing-text {
+                font-size: 1.2rem;
+                height: 35px;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .model-wrapper {
+                height: 250px;
+            }
+            
+            .model-container {
+                height: 350px;
+            }
+            
+            .feature-value {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="particles-bg" id="particlesBg"></div>
+    <div class="grid-bg"></div>
+    
+    <!-- Scroll Progress -->
+    <div class="scroll-progress" id="scrollProgress"></div>
+    
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    
+    <!-- New Navbar -->
+    <nav class="bloopy-nav">
+        <!-- Logo/Brand -->
+        <div class="nav-brand">
+            <a href="#home" class="brand-text" style="display: flex; align-items: center; gap: 8px;">
+                <img style="width: 40px;" src="logo_removed.png" alt="">
+                <span>STS</span>
+            </a>
+        </div>
+        
+        <!-- Center Navigation Menu -->
+        <div class="nav-menu">
+            <ul>
+                <li><a href="#home" class="nav-link active">Home</a></li>
+                <li><a href="#about" class="nav-link">About</a></li>
+                <li><a href="#features" class="nav-link">Features</a></li>
+                
+                <!-- Dropdown for "Pages" -->
+                <li class="dropdown">
+                    <a href="#" class="nav-link">Pages</a>
+                    <div class="dropdown-content">
+                        <a href="Gallery.html">Gallery</a>
+                        <a href="test.html">Test</a>
+                        <a href="simu.html">Simulation</a>
+                        <a href="Ai.html">AI</a>
+                    </div>
+                </li>
+                
+                <li><a href="#team" class="nav-link">Team</a></li>
+            </ul>
+        </div>
+        
+        <!-- Right-Action Buttons - Only theme toggle remains -->
+        <div class="nav-actions">
+            <!-- Dark/Light Mode Toggle -->
+            <button class="btn-icon" id="themeToggle" title="Toggle dark/light mode">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu Toggle -->
+        <button class="menu-toggle" id="menuToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+    </nav>
+    
+    <!-- Mobile Menu (Hidden by default) -->
+    <div class="mobile-menu" id="mobileMenu">
+        <ul>
+            <li><a href="#home" class="nav-link active">Home</a></li>
+            <li><a href="#about" class="nav-link">About</a></li>
+            <li><a href="#features" class="nav-link">Features</a></li>
+            
+            <!-- Dropdown for "Pages" in mobile -->
+            <li class="dropdown" id="mobilePagesDropdown">
+                <a href="#" class="nav-link">Pages <i class="fas fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="Gallery.html">Gallery</a>
+                    <a href="test.html">Test</a>
+                    <a href="simu.html">Simulation</a>
+                    <a href="Ai.html">AI</a>
+                </div>
+            </li>
+            
+            <li><a href="#team" class="nav-link">Team</a></li>
+        </ul>
+    </div>
+    
+    <!-- Main Content -->
+    <main>
+        <!-- Home Section -->
+        <section id="home">
+            <div class="section-container">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1 class="main-title animate-on-scroll">
+                            <span class="main-title-text">Smart Traffic System</span>
+                        </h1>
+                        
+                        <div class="typing-text animate-on-scroll" id="typingText">
+                            <span id="typingContent"></span>
+                            <span class="typing-cursor"></span>
+                        </div>
+                        
+                        <p class="main-subtitle animate-on-scroll">
+                            Revolutionizing urban mobility in Egypt with AI-powered traffic management. 
+                            Real-time monitoring, intelligent signal control, and pollution reduction for smarter, cleaner cities.
+                        </p>
+                        
+                        <div class="cta-buttons animate-on-scroll">
+                            <a href="#about" class="cta-button primary">
+                                <span>Learn More</span>
+                                <i class="fas fa-arrow-down"></i>
+                            </a>
+                            <a href="#features" class="cta-button secondary">
+                                <span>View Features</span>
+                                <i class="fas fa-chart-bar"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- 3D Model Container (Now with proper Sketchfab embed) -->
+                    <div class="model-container animate-on-scroll">
+                        <div class="model-wrapper">
+                            <div class="model-loading hidden" id="modelLoading">
+                                <i class="fas fa-spinner"></i>
+                                <p>3D Model Loaded</p>
+                            </div>
+                            <!-- Sketchfab embed code -->
+                            <div class="sketchfab-embed-wrapper">
+                                <iframe 
+                                    title="Smart Traffic System 3D Model" 
+                                    frameborder="0" 
+                                    allowfullscreen 
+                                    mozallowfullscreen="true" 
+                                    webkitallowfullscreen="true" 
+                                    allow="autoplay; fullscreen; xr-spatial-tracking" 
+                                    xr-spatial-tracking 
+                                    execution-while-out-of-viewport 
+                                    execution-while-not-rendered 
+                                    web-share 
+                                    src="https://sketchfab.com/models/c8acea67beb94649be74052f57c8763d/embed?ui_theme=dark&ui_infos=0&ui_controls=1&ui_inspector=0&ui_watermark=0&ui_annotations=0">
+                                </iframe>
+                            </div>
+                        </div>
+                        
+                        <div class="model-controls">
+                            <button class="control-btn" id="fullscreenBtn">
+                                <i class="fas fa-maximize"></i> Fullscreen
+                            </button>
+                            <button class="control-btn" id="infoBtn">
+                                <i class="fas fa-info-circle"></i> Model Info
+                            </button>
+                            <button class="control-btn" id="toggleThemeBtn">
+                                <i class="fas fa-palette"></i> Theme
+                            </button>
+                        </div>
+                        
+                        <div class="model-info">
+                            <h3 class="model-title">Smart Traffic System 3D Model</h3>
+                            <p class="model-description">Interactive 3D visualization of our traffic management system</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- About Section -->
+        <section id="about" class="content-section">
+            <div class="section-container">
+                <div class="section-header">
+                    <h2 class="section-title animate-on-scroll">About Project</h2>
+                    <p class="section-subtitle animate-on-scroll">
+                        Addressing Egypt's urban challenges with innovative traffic management solutions
+                    </p>
+                </div>
+                
+                <div class="about-problem-solution">
+                    <div class="problem-box animate-on-scroll">
+                        <h3 class="problem-title"><i class="fas fa-exclamation-triangle"></i> The Problem</h3>
+                        <div class="about-text">
+                            <p>Egypt stands today at a pivotal crossroads. Pollution continues to burden our air and soil. In Greater Cairo alone, vehicle emissions contribute 26% of airborne particulate matter and more than 90% of carbon monoxide, according to the Egyptian Environmental Affairs Agency.</p>
+                            
+                            <p>At the same time, rapid population growth intensifies pressure on every street. The number of licensed vehicles has continued to surge rising from about 4.8 million in 2009 to over 10.4 million in 2024, placing unprecedented strain on an already saturated road network.</p>
+                            
+                            <p>As cities expand and dependence on private vehicles increases, traffic congestion has transformed from a minor annoyance into a huge urban crisis. Traditional traffic control systems are no longer capable of managing the rapidly shifting flow of vehicles.</p>
+                            
+                            <p>Without innovative solutions, cities will continue to face chronic delays, high fuel consumption, elevated accident rates, and rising emissions.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="solution-box animate-on-scroll">
+                        <h3 class="solution-title"><i class="fas fa-lightbulb"></i> The Solution</h3>
+                        <div class="about-text">
+                            <p>To confront these growing pressures, smart traffic congestion features were developed with a T-shaped road layout with an open circular intersection that has four automatic gates. Each road consists of two lanes, with a green lane reserved for emergencies, which opens and closes automatically.</p>
+                            
+                            <p>Ambulance car was detected by an NFC tag at a specific point in road and chip was installed under the ambulance. Arduino UNO board that processes data and issuing orders, closes traffic lights and opens the green lane gate.</p>
+                            
+                            <p>The green lane is also temporarily opened during heavy traffic to reduce congestion. Ultrasonic sensors were installed along the roads at equal intervals, emitting high-frequency waves to monitor traffic density. The system able to detect accidents vehicles, an air-quality sensor MQ135 was installed to monitor environmental impact.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Features Section -->
+        <section id="features" class="content-section">
+            <div class="section-container">
+                <div class="section-header">
+                    <h2 class="section-title animate-on-scroll">System Features</h2>
+                    <p class="section-subtitle animate-on-scroll">
+                        Quantifiable outcomes demonstrating the effectiveness of our Smart Traffic System
+                    </p>
+                </div>
+                
+                <div class="features-grid" id="featuresContainer">
+                    <!-- Features cards will be dynamically generated -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Team Section -->
+        <section id="team" class="content-section">
+            <div class="section-container">
+                <div class="section-header">
+                    <h2 class="section-title animate-on-scroll">Our Team</h2>
+                    <p class="section-subtitle animate-on-scroll">
+                        Meet the talented individuals behind the Smart Traffic System project
+                    </p>
+                </div>
+                
+                <div class="team-grid" id="teamContainer">
+                    <!-- Team cards will be dynamically generated -->
+                </div>
+                
+                <div class="logbook-info" style="text-align: center; margin-top: 3rem; padding: 1.5rem; background: rgba(0, 255, 136, 0.05); border-radius: 10px; border: 1px solid rgba(0, 255, 136, 0.1);">
+                    <h4 style="color: var(--primary-green); margin-bottom: 1rem;">Team Logbooks</h4>
+                    <p style="color: var(--text-gray);">Click on any team member's photo to view their detailed project logbook, documenting their contributions, progress, and testing results throughout the development process.</p>
+                    <p style="color: var(--primary-yellow); margin-top: 0.5rem; font-size: 0.9rem;"><i class="fas fa-info-circle"></i> Each logbook contains weekly progress reports, testing documentation, and individual contributions.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">Smart Traffic System</div>
+            <p class="footer-text">
+                Optimizing urban mobility through intelligent traffic management solutions for Egyptian cities. 
+                Combining cutting-edge technology with sustainable practices for a better urban future.
+            </p>
+            
+            <div class="copyright">
+                ✔ 2025 STS Project Team | STEM Qena. All rights reserved.<br>
+                Revolutionizing Urban Mobility in Egypt
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    // ===== DOM ELEMENTS =====
+    const menuToggle = document.getElementById('menuToggle');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const backToTop = document.getElementById('backToTop');
+    const scrollProgress = document.getElementById('scrollProgress');
+    const particlesBg = document.getElementById('particlesBg');
+    const typingContent = document.getElementById('typingContent');
+    const themeToggle = document.getElementById('themeToggle');
+    const mobilePagesDropdown = document.getElementById('mobilePagesDropdown');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const infoBtn = document.getElementById('infoBtn');
+    const toggleThemeBtn = document.getElementById('toggleThemeBtn');
+    const sketchfabIframe = document.querySelector('.sketchfab-embed-wrapper iframe');
+    
+    // ===== DATA =====
+    const typingTexts = [
+        "AI-Powered Traffic Management",
+        "Real-time Pollution Monitoring",
+        "Emergency Vehicle Priority",
+        "Smart Urban Mobility",
+        "Sustainable Transportation"
+    ];
+    
+    const featuresData = [
+        {
+            title: 'System Accuracy',
+            value: '85%',
+            description: 'Average system accuracy reached 85%',
+            icon: 'check-circle'
+        },
+        {
+            title: 'Traffic Flow',
+            value: '+23%',
+            description: 'Increased from 570±13 to 701±18 vehicles per hour',
+            icon: 'car'
+        },
+        {
+            title: 'Average Trail Time',
+            value: '-26%',
+            description: 'Reduced from 28±0.2 to 20.8±0.2 seconds',
+            icon: 'clock'
+        },
+        {
+            title: 'Trip Time',
+            value: '-26%',
+            description: 'Individual car trip time improved from 7.3±0.2 to 5.4±0.2 seconds',
+            icon: 'route'
+        },
+        {
+            title: 'Response Time',
+            value: '2.2s',
+            description: 'System response time: 2.2 seconds',
+            icon: 'bolt'
+        },
+        {
+            title: 'Congestion Index',
+            value: '-74%',
+            description: 'Improved from 0.5±0.02 to 0.13±0.02',
+            icon: 'traffic-light'
+        },
+        {
+            title: 'Pollution Reduction',
+            value: '-61%',
+            description: 'Pollutant levels reduced from 1676.0±10 to 657.8±10 ppm',
+            icon: 'wind'
+        },
+        {
+            title: 'Power Consumption',
+            value: '93W',
+            description: 'Power consumption: 93.3±0.3 watts',
+            icon: 'plug'
+        }
+    ];
+    
+    const teamData = [
+        {
+            name: 'Youssef Khaled',
+            email: 'youssef.2323056@stemqena.moe.edu.eg',
+            role: 'Hardware & System Integration',
+            logbook: '1.pdf',
+            image: 'yousef.png'
+        },
+        {
+            name: 'Marwan Mahmoud',
+            email: 'marwan.2323047@stemqena.moe.edu.eg',
+            role: 'Software & AI Development',
+            logbook: '2.pdf',
+            image: 'marawan.png'
+        },
+        {
+            name: 'Mohamed Mahmoud',
+            email: 'mohamd.2323046@stemqena.moe.edu.eg',
+            role: 'Testing & Data Analysis',
+            logbook: '3.pdf',
+            image: 'mohamed.png'
+        }
+    ];
+    
+    let sketchfabTheme = 'dark';
+    
+    // ===== INITIALIZE 3D VIEWER =====
+    function init3DViewer() {
+        // Hide loading indicator after a short delay
+        setTimeout(() => {
+            document.getElementById('modelLoading').classList.add('hidden');
+        }, 1500);
+        
+        // Setup button events
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+        infoBtn.addEventListener('click', showModelInfo);
+        toggleThemeBtn.addEventListener('click', toggleSketchfabTheme);
+    }
+    
+    function toggleSketchfabTheme() {
+        sketchfabTheme = sketchfabTheme === 'dark' ? 'light' : 'dark';
+        
+        // Update Sketchfab iframe with new theme
+        const currentSrc = sketchfabIframe.src;
+        const newSrc = currentSrc.replace(/ui_theme=(dark|light)/, `ui_theme=${sketchfabTheme}`);
+        sketchfabIframe.src = newSrc;
+        
+        // Update button text
+        const icon = toggleThemeBtn.querySelector('i');
+        const text = toggleThemeBtn.querySelector('span') || document.createElement('span');
+        
+        if (sketchfabTheme === 'dark') {
+            icon.className = 'fas fa-moon';
+            text.textContent = ' Dark Theme';
+        } else {
+            icon.className = 'fas fa-sun';
+            text.textContent = ' Light Theme';
+        }
+        
+        if (!toggleThemeBtn.contains(text)) {
+            toggleThemeBtn.appendChild(text);
+        }
+        
+        // Show notification
+        showNotification(`Switched to ${sketchfabTheme} theme`);
+    }
+    
+    function toggleFullscreen() {
+        const iframe = sketchfabIframe;
+        
+        if (!document.fullscreenElement) {
+            if (iframe.requestFullscreen) {
+                iframe.requestFullscreen();
+            } else if (iframe.webkitRequestFullscreen) {
+                iframe.webkitRequestFullscreen();
+            } else if (iframe.msRequestFullscreen) {
+                iframe.msRequestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+    }
+    
+    function showModelInfo() {
+        alert(`3D Model Information:\n\nTitle: Smart Traffic System Model\nDescription: 3D visualization of the complete traffic management system with T-shaped roads, circular intersection, and emergency lanes.\n\nControls:\n• Drag to rotate the model\n• Scroll to zoom in/out\n• Right-click + drag to pan\n• Use on-screen controls for additional options`);
+    }
+    
+    function showNotification(message) {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            z-index: 9999;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        `;
+        
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 10);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.style.transform = 'translateX(120%)';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+    }
+    
+    // ===== DARK/LIGHT MODE FUNCTIONALITY =====
+    function initTheme() {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-mode');
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        } else {
+            document.body.classList.remove('light-mode');
+            themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+        }
+    }
+    
+    function toggleTheme() {
+        if (document.body.classList.contains('light-mode')) {
+            document.body.classList.remove('light-mode');
+            themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.body.classList.add('light-mode');
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            localStorage.setItem('theme', 'light');
+        }
+    }
+    
+    // ===== TYPING ANIMATION =====
+    let currentTextIndex = 0;
+    let currentCharIndex = 0;
+    let isDeleting = false;
+    let isPaused = false;
+    
+    function typeWriter() {
+        if (isPaused) return;
+        
+        const currentText = typingTexts[currentTextIndex];
+        
+        if (!isDeleting && currentCharIndex <= currentText.length) {
+            typingContent.textContent = currentText.substring(0, currentCharIndex);
+            currentCharIndex++;
+            setTimeout(typeWriter, 50);
+        } else if (isDeleting && currentCharIndex >= 0) {
+            typingContent.textContent = currentText.substring(0, currentCharIndex);
+            currentCharIndex--;
+            setTimeout(typeWriter, 30);
+        } else {
+            isDeleting = !isDeleting;
+            if (!isDeleting) {
+                currentTextIndex = (currentTextIndex + 1) % typingTexts.length;
+            }
+            setTimeout(typeWriter, isDeleting ? 1500 : 500);
+        }
+    }
+    
+    // ===== MOBILE MENU TOGGLE =====
+    menuToggle.addEventListener('click', () => {
+        mobileMenu.classList.toggle('active');
+        const icon = menuToggle.querySelector('i');
+        icon.classList.toggle('fa-bars');
+        icon.classList.toggle('fa-times');
+    });
+    
+    // Close mobile menu when clicking a link
+    document.querySelectorAll('.mobile-menu .nav-link').forEach(item => {
+        item.addEventListener('click', () => {
+            mobileMenu.classList.remove('active');
+            menuToggle.querySelector('i').classList.remove('fa-times');
+            menuToggle.querySelector('i').classList.add('fa-bars');
+        });
+    });
+    
+    // Mobile pages dropdown toggle
+    if (mobilePagesDropdown) {
+        mobilePagesDropdown.addEventListener('click', (e) => {
+            e.preventDefault();
+            mobilePagesDropdown.classList.toggle('active');
+        });
+    }
+    
+    // ===== SMOOTH SCROLL =====
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            if(targetId === '#') return;
+            
+            const targetElement = document.querySelector(targetId);
+            if(targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - 70,
+                    behavior: 'smooth'
+                });
+                
+                // Close mobile menu if open
+                mobileMenu.classList.remove('active');
+                menuToggle.querySelector('i').classList.remove('fa-times');
+                menuToggle.querySelector('i').classList.add('fa-bars');
+            }
+        });
+    });
+    
+    // Handle external page links
+    document.querySelectorAll('a[href$=".html"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            if (href && !href.startsWith('#')) {
+                // Allow default behavior for external pages
+            }
+        });
+    });
+    
+    // ===== CREATE PARTICLES BACKGROUND =====
+    function createParticles() {
+        if (!particlesBg) return;
+        
+        particlesBg.innerHTML = '';
+        const particleCount = Math.floor(window.innerWidth / 10);
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            
+            const size = Math.random() * 3 + 1;
+            const color = Math.random() > 0.5 ? 'var(--primary-green)' : 'var(--primary-blue)';
+            
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.background = color;
+            particle.style.left = `${Math.random() * 100}%`;
+            particle.style.animationDelay = `${Math.random() * -20}s`;
+            particle.style.animationDuration = `${15 + Math.random() * 15}s`;
+            particle.style.opacity = `${0.2 + Math.random() * 0.3}`;
+            
+            particlesBg.appendChild(particle);
+        }
+    }
+    
+    // ===== GENERATE FEATURES =====
+    function generateFeatures() {
+        const container = document.getElementById('featuresContainer');
+        if (!container) return;
+        
+        container.innerHTML = featuresData.map((feature, index) => `
+            <div class="feature-card animate-on-scroll" style="animation-delay: ${index * 0.1}s">
+                <div class="feature-icon">
+                    <i class="fas fa-${feature.icon}"></i>
+                </div>
+                <div class="feature-value">${feature.value}</div>
+                <h3 class="feature-title">${feature.title}</h3>
+                <p class="feature-description">${feature.description}</p>
+            </div>
+        `).join('');
+    }
+    
+    // ===== GENERATE TEAM =====
+    function generateTeam() {
+        const container = document.getElementById('teamContainer');
+        if (!container) return;
+        
+        container.innerHTML = teamData.map((member, index) => `
+            <div class="team-card animate-on-scroll" style="animation-delay: ${index * 0.1}s">
+                <a href="${member.logbook}" target="_blank" class="member-photo" title="Click to view ${member.name}'s logbook">
+                    <img src="${member.image}" alt="${member.name}" onerror="this.onerror=null; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%2300ff88%22/><text x=%2250%22 y=%2250%22 font-size=%2220%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22>${member.name.charAt(0)}</text></svg>'">
+                </a>
+                <h3 class="member-name">${member.name}</h3>
+                <div class="member-email">${member.email}</div>
+                <p class="member-role">${member.role}</p>
+                <p class="logbook-info"><i class="fas fa-file-pdf"></i> Click photo to view detailed logbook</p>
+            </div>
+        `).join('');
+    }
+    
+    // ===== SCROLL PROGRESS =====
+    function updateScrollProgress() {
+        const windowHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrolled = (window.scrollY / windowHeight) * 100;
+        scrollProgress.style.width = `${scrolled}%`;
+        
+        // Show/hide back to top button
+        backToTop.classList.toggle('visible', window.scrollY > 500);
+        
+        // Trigger animations
+        triggerAnimations();
+        
+        // Update active nav link
+        updateActiveNav();
+    }
+    
+    // ===== BACK TO TOP =====
+    backToTop.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+    
+    // ===== ANIMATIONS ON SCROLL =====
+    function triggerAnimations() {
+        const elements = document.querySelectorAll('.animate-on-scroll');
+        
+        elements.forEach(element => {
+            const elementTop = element.getBoundingClientRect().top;
+            const windowHeight = window.innerHeight;
+            
+            if(elementTop < windowHeight * 0.8) {
+                element.classList.add('visible');
+            }
+        });
+    }
+    
+    // ===== ACTIVE NAV LINK ON SCROLL =====
+    function updateActiveNav() {
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        let current = '';
+        
+        const scrollPosition = window.scrollY + 100;
+        
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.clientHeight;
+            
+            if(scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+                current = section.getAttribute('id');
+            }
+        });
+        
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if(link.getAttribute('href') === `#${current}`) {
+                link.classList.add('active');
+            }
+        });
+    }
+    
+    // ===== INITIALIZE =====
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize theme
+        initTheme();
+        
+        // Add theme toggle event listener
+        themeToggle.addEventListener('click', toggleTheme);
+        
+        // Start typing animation
+        typeWriter();
+        
+        // Create particles background
+        createParticles();
+        
+        // Initialize 3D viewer
+        init3DViewer();
+        
+        // Generate all content
+        generateFeatures();
+        generateTeam();
+        
+        // Add scroll event listeners
+        window.addEventListener('scroll', updateScrollProgress);
+        
+        // Initial setup
+        updateScrollProgress();
+        updateActiveNav();
+        
+        // Update background on resize
+        window.addEventListener('resize', createParticles);
+        
+        // Refresh particles periodically
+        setInterval(createParticles, 30000);
+    });
+    </script>
+</body>
+</html>
